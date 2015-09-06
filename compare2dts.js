@@ -217,8 +217,11 @@
 					} else {
 						differ_count ++;
 						//输出不匹配项
-						//consoleOut(currentLineNum,mark,lineStr);
-						cacheConsole.push(currentLineNum,mark,lineStr);
+						if(mark){
+							cacheConsole.push(currentLineNum,mark,lineStr);
+						}else{
+							consoleOut(currentLineNum,mark,lineStr);
+						}
 						//输出不匹配原因
 						//console.log('///ClassOrInterfaceOrEnum_Not_Found');
 					}
