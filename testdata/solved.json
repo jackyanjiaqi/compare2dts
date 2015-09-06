@@ -1,11 +1,36 @@
 [
+
   {
-    "desc":"class Logger{ static fatal(actionCode: string, value?: Object): void; }",
-    "name":"fatal",
+    "desc":"class Logger{ * }",
+    "name":"*",
     "category-name":"Logger",
     "category-type":"class",
     "solution-url":"http://www.baidu.com/1.html",
     "solved":true
+  },
+  {
+    "desc":"class RenderCommand{ * }",
+    "name":"*",
+    "category-name":"RenderCommand",
+    "category-type":"class",
+    "solution-url":"http://www.baidu.com/1.html",
+    "solved":false
+  },
+  {
+    "desc":"interface RenderContext{ * }",
+    "name":"*",
+    "category-name":"RenderContext",
+    "category-type":"interface",
+    "solution-url":"http://www.baidu.com/1.html",
+    "solved":true
+  },
+  {
+    "desc":"class Profiler{ * }",
+    "name":"*",
+    "category-name":"Profiler",
+    "category-type":"class",
+    "solution-url":"http://www.baidu.com/3.html",
+    "solved":false
   },
   {
     "desc":"class HashObject{ private static hashCount; }",
@@ -13,7 +38,7 @@
     "category-name":"HashObject",
     "category-type":"class",
     "solution-url":"http://www.baidu.com/2.html",
-    "solved":true
+    "solved":false
   },
   {
     "desc":"function $error(code: number, ...args: any[]): void;",
@@ -38,14 +63,14 @@
   },
   {
     "desc":"interface IHashObject{ * }",
-    "name":"all",
+    "name":"*",
     "category-name":"IHashObject",
     "category-type":"interface",
     "solution-url":"http://www.baidu.com/ihashobject-all"
   },
   {
     "desc":"*",
-    "name":"all",
+    "name":"*",
     "category-name":"egret",
     "category-type":"module",
     "solution-url":"http://www.baidu.com/ihashobject-all"

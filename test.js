@@ -14,4 +14,4 @@ var comparingFilePath = __dirname + '/testdata/allinone2.0.4.d.ts';
 var comparedFilePath = __dirname + '/testdata/allinone2.4.0.d.ts';
 var jsonConfigFilePath = __dirname + '/testdata/solved.json';
 
-DTSCompareTool.compare(comparingFilePath,comparedFilePath,jsonConfigFilePath);
+DTSCompareTool.compare('-simple',comparingFilePath,comparedFilePath,jsonConfigFilePath);

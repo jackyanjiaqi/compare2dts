@@ -6,11 +6,52 @@
 	//带＊的输出控制台
 	var cacheConsole = {
 		cacheLst:{},
-		push:function(){
+		push : function(){
 			//提取参数
 			var lineNum = arguments[0];
 			var mark = arguments[1];
+			var lineStr = arguments[2];
+
+			if(output_type == 1){
+				lineStr = mark?mark+'{ '+lineStr+' }':lineStr;
+				if(isConsoleIgnored(formatItem({desc:lineStr}))){
+					solved_count ++;
+					return ;
+				}
+				if(mark){
+					mark = mark.split(' ')[1];
+				}else{
+					mark = 'egret';
+				}
+			}
+
 			if(!this.cacheLst[mark]){
+				this.cacheLst[mark] = 1;
+			}else{
+				this.cacheLst[mark] ++;
+			}
+		},
+		pushAutoClear : function(){
+			//提取参数
+			var lineNum = arguments[0];
+			var mark = arguments[1];
+			var lineStr = arguments[2];
+
+			if(output_type == 1){
+				lineStr = mark?mark+'{ '+lineStr+' }':lineStr;
+				if(isConsoleIgnored(formatItem({desc:lineStr}))){
+					solved_count ++;
+					return ;
+				}
+				if(mark){
+					mark = mark.split(' ')[1];
+				}else{
+					mark = 'egret';
+				}
+			}
+
+			if(!this.cacheLst[mark]){
+				this.clear();
 				this.cacheLst[mark] = 1;
 			}else{
 				this.cacheLst[mark] ++;
@@ -18,7 +59,12 @@
 		},
 		clear:function(){
 			for(var mark in this.cacheLst){
-				consoleOut("..("+this.cacheLst[mark] + "项)",mark,"*");
+				if(output_type == 0) {
+					_consoleOut_0("..("+this.cacheLst[mark] + "项)",mark,"*");
+				}else{
+					_consoleOut_1(mark,this.cacheLst[mark]);
+				}
+				delete this.cacheLst[mark];
 			}
 		}
 	}
@@ -42,6 +88,7 @@
 	/*控制项*/
 	var isComment = false;//去除注释
 	var isParseEnabled = false;//解析开关,目前只解析egret模组的内容
+	var output_type = 0;//0,默认;1,精简
 
 	/*统计项*/
 	var keep_count = 0;
@@ -218,7 +265,10 @@
 						differ_count ++;
 						//输出不匹配项
 						if(mark){
+							//同一个类输出结束后输出＊
+							//cacheConsole.pushAutoClear(currentLineNum,mark,lineStr);
 							cacheConsole.push(currentLineNum,mark,lineStr);
+							//consoleOut(currentLineNum,mark,lineStr);
 						}else{
 							consoleOut(currentLineNum,mark,lineStr);
 						}
@@ -255,6 +305,20 @@
 
 	//输出
 	function consoleOut(lineNum,mark,lineStr){
+		if(output_type == 0){
+			_consoleOut_0(lineNum,mark,lineStr);
+		}else
+		if(output_type == 1){
+			cacheConsole.pushAutoClear(lineNum,mark,lineStr);
+		}
+	}
+
+	function _consoleOut_1(name,count){
+		console.log(name +' '+ count);
+	}
+
+	//输出
+	function _consoleOut_0(lineNum,mark,lineStr){
         var solvedKeyPattern;
         var lineNumPattern = 'Line ' + lineNum + ':';
         if(mark){
@@ -263,17 +327,24 @@
             solvedKeyPattern = lineStr;
         }
 
-		if(isConsoleIgnored(solvedKeyPattern)){
-			solved_count ++;
+		var add_count = 1;
+		if(typeof lineNum == 'string'){
+			var numStr = lineNum.slice(lineNum.indexOf('(')+1,lineNum.indexOf('项)'));
+			add_count = parseInt(numStr);
+		}
+		if(isConsoleIgnored(formatItem({desc:solvedKeyPattern}))){
+			solved_count += add_count;
 			return ;
 		}
-
         console.log(lineNumPattern + solvedKeyPattern);
-
 	}
 
 	function consoleExit(){
-
+		var consoleOut = '';
+		for(var i=0;i<arguments.length;i++){
+			consoleOut += arguments[i];
+		}
+		console.log(consoleOut);
 	}
 
 	function isCommentIgnored(lineStr){
@@ -297,10 +368,25 @@
 		return isComment;
 	}
 
-	function isConsoleIgnored(solvedKey){
+	function isConsoleIgnored(item){
 		if(solvedJson){
-			return solvedJson.some(function(item){
-				return item.desc == solvedKey && item.solved;
+			var res = false;
+			//有先查看通配 * 的处理
+			var quickLst = solvedJson.quickLST || solvedJson;
+			if(quickLst){
+				res = quickLst.some(function(it){
+					var result = (it['name'] == "*" &&
+						it['category-name'] == item['category-name'] &&
+						it['category-type'] == item['category-type'] &&
+						it.solved);
+					return result;
+				});
+				if(res){
+					return true;
+				}
+			}
+			return solvedJson.some(function(it){
+				return it.desc == item.desc && it.solved;
 			});
 		}
 		return false;
@@ -324,7 +410,7 @@
 				parseLineAndMergeInMap(trim(line));
 			}
 			if (last) {
-				console.log("-ParseEnd-");
+				console.log("-----------------------------------ParseEnd >>>>>");
 				startCompare(comparingFilePath);
 			}
 		});
@@ -338,7 +424,7 @@
 			}
 			if (last) {
 				cacheConsole.clear();
-				console.log("-CompareEnd-");
+				console.log("-----------------------------------CompareEnd >>>>>");
 				console.log("Differences:" + differ_count);
 				console.log("Kept:" + keep_count);
                 if(solvedJson){
@@ -355,12 +441,19 @@
 	}
 
 	function compare(){
-		if(arguments.length<2){
-			return help();
+		//是否包含控制参数
+		var i = 0;
+		if(arguments[0] == '-simple'){
+			output_type = 1;
+			i = 1;
 		}
-		var comparingFilePath = arguments[0];
-		var comparedFilePath = arguments[1];
-		var solvedJsonFile = arguments[2];//过滤已经处理的json
+
+		if(arguments.length<2){
+			return helpCompare();
+		}
+		var comparingFilePath = arguments[i];
+		var comparedFilePath = arguments[i+1];
+		var solvedJsonFile = arguments[i+2];//过滤已经处理的json
 		if(solvedJsonFile){
 			buildJsonObject(solvedJsonFile,function(){
 				startParse(comparedFilePath,comparingFilePath);
@@ -370,13 +463,25 @@
 		}
 	}
 
-	function help(){
+	function helpCompare(){
 		console.log('tip:need at least 2 params ');
 		console.log('example: arg1.dts arg2.dts [config.json]');
 	}
 
-	function mergeItem(){
+	function helpGenJSON(){
+		console.log('tip:need at least 3 params ');
+		console.log('example: arg1.dts arg2.dts gen_json_path');
+	}
 
+	function mergeItem(newItem,oldItem){
+		for(var p in newItem){
+			if(!oldItem[p] && newItem[p]){
+				oldItem[p] = newItem[p];
+			}else
+			if(oldItem[p] != newItem[p]){
+				consoleExit('属性冲突，请手动修改后重新试',newItem,oldItem);
+			}
+		}
 	}
 
 	/**
@@ -385,13 +490,14 @@
 	 */
 	function formatItem(item){
 		var body;
+		var name;
 		var category_name;
 		var category_type;
 		//step 1 解析包含关系
 		//解析class enum interface和module直接成员
 		if(item.desc.indexOf('{') != -1 && item.desc.indexOf('}') != -1){
 			var category = item.desc.slice(0,item.desc.indexOf('{'));
-			var body = item.desc.slice(item.desc.indexOf('{'),item.desc.indexOf('}'));
+			body = item.desc.slice(item.desc.indexOf('{')+2,item.desc.indexOf('}')-1);
 			//空格切分单词
 			var reg=/\s+/g;
 			var arr = category.split(reg);
@@ -426,22 +532,85 @@
 		}else{
 			consoleExit('解析格式错误,无法解析出类型名称',item.desc);
 		}
-		//step 4 提取成员名称
-		//四种情况
-		//
-
-		//是否包含通配符
-		if(item.desc && item.desc.indexOf('*') != -1){
+		if(category_type){
+			if('category-type' in item && item['category-type'] != category_type){
+				//加入冲突列表
+				if(!item.conflict){
+					item.conflict = [];
+				}
+				item.conflict.push(item);
+			}else{
+				item['category-type'] = category_type;
+			}
+		}else{
+			consoleExit('解析格式错误,解析类型冲突',item.desc);
+		}
+		//step 4 是否包含通配符
+		if(body.indexOf('*') != -1){
 			//module下的直接成员不能通配
 			if(item['category-type'] != 'module'){
-				item['category-name'] = 'all';
+				item['name'] = '*';
 			}
 		}
-		//添加solved标记
+		//step 5 提取成员名称
+		//3种情况
+		//1) private _setMatrix(value); 首个'('前的单词作为函数成员名称
+		//2) static __DRAW_COMMAND_LIST: Array<RenderCommand>; 成员变量后面紧接着:用来声明类型
+		//3) private array; 没有用:声明类型 去掉;取最后一个单词
+		//空格切分单词
+		var body_reg = /\s+/g;
+		var body_arr = body.split(body_reg);
+		//去掉前导限定符 比如 public/private static declare const
+
+		for(var i =0;i<body_arr.length;i++){
+			if(body_arr[i] != 'private' &&
+				body_arr[i] != 'public' &&
+				body_arr[i] != 'static' &&
+					body_arr[i] != 'var' &&
+					body_arr[i] != 'function'
+			){
+				//提取函数名称
+				if(body_arr[i].indexOf('(') != -1){
+					name = body_arr[i].slice(0,body_arr[i].indexOf('('));
+					break;
+				}
+				//提取声明符号前的单词
+				if(body_arr[i].indexOf(':') != -1 || body_arr[i].indexOf('?:') != -1){
+					var sliceIndex = body_arr[i].indexOf(':');
+					if(sliceIndex == -1){
+						sliceIndex = body_arr[i].indexOf('?:');
+					}
+					name = body_arr[i].slice(0,sliceIndex);
+					break;
+				}
+				if(body_arr[i].indexOf(';') != -1){
+					name = body_arr[i].slice(0,body_arr[i].indexOf(';'));
+				}else{
+					name = body_arr[i];
+				}
+			}
+		}
+		//step 6 冲突检测
+		if(name){
+			if('name' in item && item['name'] != name){
+				//加入冲突列表
+				if(!item.conflict){
+					item.conflict = [];
+				}
+				item.conflict.push(item);
+			}else{
+				item['name'] = name;
+			}
+		}else{
+			consoleExit('解析格式错误,无法解析出成员名称',item.desc);
+		}
+
+		//step 7 添加solved标记
 		if('solution-url' in item && !('solved' in item)){
 			item.solved = true;
 		}
-
+		//此时没有完全解析 请不要通配星号＊
+		return item;
 	}
 
 	function formatJsonConfig(jsonPath){
@@ -449,6 +618,7 @@
 			solvedJson = JSON.parse(file.read(jsonPath));
 		}
 		//添加快表
+		//快表的目的是快速搜索相同项 且 快速定位＊项
 		if(!solvedJson.quickLST){
 			solvedJson.quickLST = {};
 		}
@@ -462,6 +632,19 @@
 				formatItem(item);
 			}
 		});
+		solvedJson.forEach(function(item){
+			//对未解决项再次查找快表
+			if(!item.solved){
+				for(var p in solvedJson.quickLST){
+					if(solvedJson.quickLST[p].name != '*'){
+						delete solvedJson.quickLST[p];
+					}else
+					if(solvedJson.quickLST[p]['category-name'] == item['category-name']){
+						item.solved = solvedJson.quickLST[p].solved;
+					}
+				}
+			}
+		});
 	}
 
 	function optmizeJsonConfig(jsonPath){
@@ -470,12 +653,22 @@
 		}
 	}
 
+	function compareAndGenJSON(){
+		solvedJson = {};
+
+	}
+
+	function loadAndFormatJSON(){
+
+	}
 
 	module.exports.compare = compare;
+	module.exports.compareAndGenJSON = compareAndGenJSON;
+	module.exports.loadAndFormatJSON = loadAndFormatJSON;
 })();
 
 if(process.argv.length>3){
-	module.exports.compare(process.argv[2],process.argv[3],process.argv[4]);
+	module.exports.compare(process.argv.slice(0,2));
 }
 
 
