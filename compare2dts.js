@@ -1,7 +1,27 @@
 (function(){
 	var LineReader = require('./lib/line_reader');
+	var file = require('./lib/FileUtil');
 
 	var parseMap = {lines:[]};
+	//带＊的输出控制台
+	var cacheConsole = {
+		cacheLst:{},
+		push:function(){
+			//提取参数
+			var lineNum = arguments[0];
+			var mark = arguments[1];
+			if(!this.cacheLst[mark]){
+				this.cacheLst[mark] = 1;
+			}else{
+				this.cacheLst[mark] ++;
+			}
+		},
+		clear:function(){
+			for(var mark in this.cacheLst){
+				consoleOut("..("+this.cacheLst[mark] + "项)",mark,"*");
+			}
+		}
+	}
 
 	var solvedJson = null;
 
@@ -108,7 +128,7 @@
 	}
 
 	/**
-	 * 解析行并于解析好的Map比较
+	 * 解析行并与解析好的Map比较
 	 * @param lineStr
 	 */
 	function parseLineAndCompareWithMap(lineStr) {
@@ -197,7 +217,8 @@
 					} else {
 						differ_count ++;
 						//输出不匹配项
-						consoleOut(currentLineNum,mark,lineStr);
+						//consoleOut(currentLineNum,mark,lineStr);
+						cacheConsole.push(currentLineNum,mark,lineStr);
 						//输出不匹配原因
 						//console.log('///ClassOrInterfaceOrEnum_Not_Found');
 					}
@@ -248,6 +269,10 @@
 
 	}
 
+	function consoleExit(){
+
+	}
+
 	function isCommentIgnored(lineStr){
 		//单行注释
 		if(lineStr.indexOf('//') !== -1){
@@ -272,7 +297,7 @@
 	function isConsoleIgnored(solvedKey){
 		if(solvedJson){
 			return solvedJson.some(function(item){
-				return item.desc == solvedKey;
+				return item.desc == solvedKey && item.solved;
 			});
 		}
 		return false;
@@ -309,6 +334,7 @@
 				parseLineAndCompareWithMap(trim(line));
 			}
 			if (last) {
+				cacheConsole.clear();
 				console.log("-CompareEnd-");
 				console.log("Differences:" + differ_count);
 				console.log("Kept:" + keep_count);
@@ -345,6 +371,102 @@
 		console.log('tip:need at least 2 params ');
 		console.log('example: arg1.dts arg2.dts [config.json]');
 	}
+
+	function mergeItem(){
+
+	}
+
+	/**
+	 * 格式化配置项
+	 * @param item
+	 */
+	function formatItem(item){
+		var body;
+		var category_name;
+		var category_type;
+		//step 1 解析包含关系
+		//解析class enum interface和module直接成员
+		if(item.desc.indexOf('{') != -1 && item.desc.indexOf('}') != -1){
+			var category = item.desc.slice(0,item.desc.indexOf('{'));
+			var body = item.desc.slice(item.desc.indexOf('{'),item.desc.indexOf('}'));
+			//空格切分单词
+			var reg=/\s+/g;
+			var arr = category.split(reg);
+			//去掉前导限定符 比如 public/private static declare const
+			for(var i =0;i<arr.length;i++){
+				if(arr[i] == 'class' ||
+					arr[i] == 'interface' ||
+					arr[i] == 'enum'){
+					category_type = arr[i];
+					category_name = arr[i+1];
+					break;
+				}
+			}
+		}
+		//step 2 设置category-name和category-type
+		if(!body){
+			body = item.desc;
+			category_name = 'egret';
+			category_type = 'module';
+		}
+		//step 3 冲突检测
+		if(category_name){
+			if('category-name' in item && item['category-name'] != category_name){
+				//加入冲突列表
+				if(!item.conflict){
+					item.conflict = [];
+				}
+				item.conflict.push(item);
+			}else{
+				item['category-name'] = category_name;
+			}
+		}else{
+			consoleExit('解析格式错误,无法解析出类型名称',item.desc);
+		}
+		//step 4 提取成员名称
+		//四种情况
+		//
+
+		//是否包含通配符
+		if(item.desc && item.desc.indexOf('*') != -1){
+			//module下的直接成员不能通配
+			if(item['category-type'] != 'module'){
+				item['category-name'] = 'all';
+			}
+		}
+		//添加solved标记
+		if('solution-url' in item && !('solved' in item)){
+			item.solved = true;
+		}
+
+	}
+
+	function formatJsonConfig(jsonPath){
+		if(!solvedJson){
+			solvedJson = JSON.parse(file.read(jsonPath));
+		}
+		//添加快表
+		if(!solvedJson.quickLST){
+			solvedJson.quickLST = {};
+		}
+		solvedJson.forEach(function(item){
+			if(item.desc){
+				if(item.desc in solvedJson.quickLST){
+					mergeItem(item,solvedJson.quickLST[item.desc]);
+				}else{
+					solvedJson.quickLST[item.desc] = item;
+				}
+				formatItem(item);
+			}
+		});
+	}
+
+	function optmizeJsonConfig(jsonPath){
+		if(!solvedJson){
+
+		}
+	}
+
 
 	module.exports.compare = compare;
 })();
