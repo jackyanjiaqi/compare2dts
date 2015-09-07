@@ -13,5 +13,9 @@ var DTSCompareTool = require('./compare2dts');
 var comparingFilePath = __dirname + '/testdata/allinone2.0.4.d.ts';
 var comparedFilePath = __dirname + '/testdata/allinone2.4.0.d.ts';
 var jsonConfigFilePath = __dirname + '/testdata/solved.json';
+//测试compare
+//DTSCompareTool.compare('-simple',comparingFilePath,comparedFilePath,jsonConfigFilePath);
+//DTSCompareTool.compare(comparingFilePath,comparedFilePath,jsonConfigFilePath);
+//测试compare_gen
+DTSCompareTool.compare_gen(comparingFilePath,comparedFilePath,jsonConfigFilePath,__dirname + '/testdata/gen.json');
 
-DTSCompareTool.compare('-simple',comparingFilePath,comparedFilePath,jsonConfigFilePath);

@@ -3,6 +3,9 @@
 	var file = require('./lib/FileUtil');
 
 	var parseMap = {lines:[]};
+
+	var outputLst = [];
+
 	//带＊的输出控制台
 	var cacheConsole = {
 		cacheLst:{},
@@ -12,7 +15,7 @@
 			var mark = arguments[1];
 			var lineStr = arguments[2];
 
-			if(output_type == 1){
+			if(OUTPUT_TYPE_SIMPLE == output_type){
 				lineStr = mark?mark+'{ '+lineStr+' }':lineStr;
 				if(isConsoleIgnored(formatItem({desc:lineStr}))){
 					solved_count ++;
@@ -37,7 +40,7 @@
 			var mark = arguments[1];
 			var lineStr = arguments[2];
 
-			if(output_type == 1){
+			if(OUTPUT_TYPE_SIMPLE == output_type){
 				lineStr = mark?mark+'{ '+lineStr+' }':lineStr;
 				if(isConsoleIgnored(formatItem({desc:lineStr}))){
 					solved_count ++;
@@ -57,12 +60,13 @@
 				this.cacheLst[mark] ++;
 			}
 		},
-		clear:function(){
+		clear : function(){
 			for(var mark in this.cacheLst){
-				if(output_type == 0) {
-					_consoleOut_0("..("+this.cacheLst[mark] + "项)",mark,"*");
-				}else{
-					_consoleOut_1(mark,this.cacheLst[mark]);
+				if(OUTPUT_TYPE_FULL == output_type) {
+					_consoleOut_full("..("+this.cacheLst[mark] + "项)",mark,"*");
+				}else
+				if(OUTPUT_TYPE_SIMPLE == output_type){
+					_consoleOut_simple(mark,this.cacheLst[mark]);
 				}
 				delete this.cacheLst[mark];
 			}
@@ -88,7 +92,12 @@
 	/*控制项*/
 	var isComment = false;//去除注释
 	var isParseEnabled = false;//解析开关,目前只解析egret模组的内容
-	var output_type = 0;//0,默认;1,精简
+
+	var OUTPUT_TYPE_FULL = 1;
+	var OUTPUT_TYPE_SIMPLE = 2;
+	var output_type = OUTPUT_TYPE_FULL;//1,默认;2,精简
+
+	var isConsoleEnabled = true;//控制台输出开关
 
 	/*统计项*/
 	var keep_count = 0;
@@ -238,6 +247,10 @@
 					state = -1;
 				}
 			} else {
+				//私有成员不参与比较
+				if(lineStr.indexOf('private ') != -1){
+					return;
+				}
 				//根据状态与Map中的行比较并输出
 				if (state === GRADULE_PARSE) {
 					if (!_isLineMatch(lineStr, parseMap.lines)) {
@@ -305,20 +318,22 @@
 
 	//输出
 	function consoleOut(lineNum,mark,lineStr){
-		if(output_type == 0){
-			_consoleOut_0(lineNum,mark,lineStr);
+		if(OUTPUT_TYPE_FULL == output_type){
+			_consoleOut_full(lineNum,mark,lineStr);
 		}else
-		if(output_type == 1){
+		if(OUTPUT_TYPE_SIMPLE == output_type){
 			cacheConsole.pushAutoClear(lineNum,mark,lineStr);
 		}
 	}
-
-	function _consoleOut_1(name,count){
-		console.log(name +' '+ count);
+	//极简输出
+	function _consoleOut_simple(name,count){
+		if(isConsoleEnabled){
+			console.log(name +' '+ count);
+		}
 	}
 
-	//输出
-	function _consoleOut_0(lineNum,mark,lineStr){
+	//全部输出
+	function _consoleOut_full(lineNum,mark,lineStr){
         var solvedKeyPattern;
         var lineNumPattern = 'Line ' + lineNum + ':';
         if(mark){
@@ -336,7 +351,10 @@
 			solved_count += add_count;
 			return ;
 		}
-        console.log(lineNumPattern + solvedKeyPattern);
+		if(isConsoleEnabled){
+        	console.log(lineNumPattern + solvedKeyPattern);
+		}
+		outputLst.push({desc:solvedKeyPattern});
 	}
 
 	function consoleExit(){
@@ -444,11 +462,11 @@
 		//是否包含控制参数
 		var i = 0;
 		if(arguments[0] == '-simple'){
-			output_type = 1;
+			output_type = OUTPUT_TYPE_SIMPLE;
 			i = 1;
 		}
 
-		if(arguments.length<2){
+		if(arguments.length<i+2){
 			return helpCompare();
 		}
 		var comparingFilePath = arguments[i];
@@ -653,9 +671,17 @@
 		}
 	}
 
-	function compareAndGenJSON(){
-		solvedJson = {};
-
+	function compareAndGenJSON(comparingFilePath,comparedFilePath,solvedJsonFile,genJsonFile){
+		isConsoleEnabled = true;
+		compare(comparingFilePath,comparedFilePath,solvedJsonFile);
+		var writeFilePath;
+		if(genJsonFile){
+			writeFilePath = genJsonFile;
+		}else
+		if(solvedJsonFile){
+			writeFilePath = solvedJsonFile;
+		}
+		file.save(writeFilePath,JSON.stringify(outputLst));
 	}
 
 	function loadAndFormatJSON(){
@@ -663,8 +689,8 @@
 	}
 
 	module.exports.compare = compare;
-	module.exports.compareAndGenJSON = compareAndGenJSON;
-	module.exports.loadAndFormatJSON = loadAndFormatJSON;
+	module.exports.compare_gen = compareAndGenJSON;
+	module.exports.load_format = loadAndFormatJSON;
 })();
 
 if(process.argv.length>3){

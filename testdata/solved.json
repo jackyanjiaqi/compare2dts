@@ -1,12 +1,11 @@
 [
-
   {
     "desc":"class Logger{ * }",
     "name":"*",
     "category-name":"Logger",
     "category-type":"class",
     "solution-url":"http://www.baidu.com/1.html",
-    "solved":true
+    "solved":false
   },
   {
     "desc":"class RenderCommand{ * }",
@@ -22,7 +21,7 @@
     "category-name":"RenderContext",
     "category-type":"interface",
     "solution-url":"http://www.baidu.com/1.html",
-    "solved":true
+    "solved":false
   },
   {
     "desc":"class Profiler{ * }",
