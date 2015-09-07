@@ -1,6 +1,7 @@
 (function(){
 	var LineReader = require('./lib/line_reader');
 	var file = require('./lib/FileUtil');
+	var Formatter = require('./lib/formatter');
 
 	var parseMap = {lines:[]};
 
@@ -72,6 +73,8 @@
 			}
 		}
 	}
+
+	var compareEndCallBack = null;
 
 	var solvedJson = null;
 
@@ -354,7 +357,11 @@
 		if(isConsoleEnabled){
         	console.log(lineNumPattern + solvedKeyPattern);
 		}
-		outputLst.push({desc:solvedKeyPattern});
+		if(outputLst.quickLST && solvedKeyPattern in outputLst.quickLST){
+			//快表中已存在该项
+		}else{
+			outputLst.push({desc:solvedKeyPattern});
+		}
 	}
 
 	function consoleExit(){
@@ -390,7 +397,7 @@
 		if(solvedJson){
 			var res = false;
 			//有先查看通配 * 的处理
-			var quickLst = solvedJson.quickLST || solvedJson;
+			var quickLst = solvedJson;
 			if(quickLst){
 				res = quickLst.some(function(it){
 					var result = (it['name'] == "*" &&
@@ -441,6 +448,9 @@
 				parseLineAndCompareWithMap(trim(line));
 			}
 			if (last) {
+				if(compareEndCallBack){
+					compareEndCallBack();
+				}
 				cacheConsole.clear();
 				console.log("-----------------------------------CompareEnd >>>>>");
 				console.log("Differences:" + differ_count);
@@ -472,13 +482,10 @@
 		var comparingFilePath = arguments[i];
 		var comparedFilePath = arguments[i+1];
 		var solvedJsonFile = arguments[i+2];//过滤已经处理的json
-		if(solvedJsonFile){
-			buildJsonObject(solvedJsonFile,function(){
-				startParse(comparedFilePath,comparingFilePath);
-			});
-		}else{
-			startParse(comparedFilePath,comparingFilePath);
+		if(solvedJsonFile && !solvedJson){
+			solvedJson = formatJsonConfig(JSON.parse(file.read(solvedJsonFile)));
 		}
+		startParse(comparedFilePath,comparingFilePath);
 	}
 
 	function helpCompare(){
@@ -497,7 +504,8 @@
 				oldItem[p] = newItem[p];
 			}else
 			if(oldItem[p] != newItem[p]){
-				consoleExit('属性冲突，请手动修改后重新试',newItem,oldItem);
+				consoleExit('属性冲突，请手动修改后重新试\n',JSON.stringify(newItem,null,2),JSON.stringify(oldItem,null,2));
+				break;
 			}
 		}
 	}
@@ -631,12 +639,13 @@
 		return item;
 	}
 
-	function formatJsonConfig(jsonPath){
-		if(!solvedJson){
-			solvedJson = JSON.parse(file.read(jsonPath));
-		}
+	function formatJsonConfig(solvedJson){
+		//if(!solvedJson){
+		//	solvedJson = JSON.parse(file.read(jsonPath));
+		//}
 		//添加快表
 		//快表的目的是快速搜索相同项 且 快速定位＊项
+
 		if(!solvedJson.quickLST){
 			solvedJson.quickLST = {};
 		}
@@ -663,6 +672,7 @@
 				}
 			}
 		});
+		return solvedJson;
 	}
 
 	function optmizeJsonConfig(jsonPath){
@@ -672,16 +682,26 @@
 	}
 
 	function compareAndGenJSON(comparingFilePath,comparedFilePath,solvedJsonFile,genJsonFile){
-		isConsoleEnabled = true;
-		compare(comparingFilePath,comparedFilePath,solvedJsonFile);
+		isConsoleEnabled = false;
+		var need
 		var writeFilePath;
 		if(genJsonFile){
 			writeFilePath = genJsonFile;
 		}else
 		if(solvedJsonFile){
+			//写回
 			writeFilePath = solvedJsonFile;
+			//输出对象指向solvedJson
+			solvedJson = formatJsonConfig(JSON.parse(file.read(solvedJsonFile)));
+			outputLst = solvedJson;
 		}
-		file.save(writeFilePath,JSON.stringify(outputLst));
+
+		compareEndCallBack = function(){
+			formatJsonConfig(outputLst);
+			file.save(writeFilePath,JSON.stringify(outputLst,null,4));
+		}
+		compare(comparingFilePath,comparedFilePath,solvedJsonFile);
+
 	}
 
 	function loadAndFormatJSON(){
