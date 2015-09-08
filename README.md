@@ -2,27 +2,39 @@
 A tool used to compare 2 .d.ts files find differences under egret module including classes interfaces enums ignoring others.
 generate a template .json(gen.json) which is used for editing to make a list of problems solved as a config next time to compare.
 
-2015.9.8 NEW FEATURES
-2015年9月8日新特性
+比较两个typescript声明文件的差异并统计成一个列表
+，常用于API兼容和客户支持工作
+
+##2015.9.8 NEW FEATURES
+
+##2015年9月8日新特性
+
 support multiple .json files merging into a single config.json Obj innerside
+
 支持多个json文件输入合并成为一个在内存中的配置文件
 
 new commend
+
 新加的命令
 
 load_multi_format
+
 输入多个文件名合并解析成一个配置文件
 
-2015.9.7 NEW FEATURES
-2015年9月7日新特性
+##2015.9.7 NEW FEATURES
+
+##2015年9月7日新特性
 
 new command
+
 新加的命令
 
 compare_gen
+
 比较并将结果输出到一个json文件中
 
 see more in compare_gen.js
+
 用法详见js源码
 
 ## Usage
