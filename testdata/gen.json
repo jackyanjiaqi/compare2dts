@@ -1593,7 +1593,8 @@
         "desc": "class RenderTexture{ renderContext: any; }",
         "category-name": "RenderTexture",
         "category-type": "class",
-        "name": "renderContext"
+        "name": "renderContext",
+        "resolution-url":"http://www.baidu.com/htp1"
     },
     {
         "desc": "class RenderTexture{ init(): void; }",

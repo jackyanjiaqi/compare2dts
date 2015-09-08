@@ -1,0 +1,54 @@
+[
+  {
+    "desc": "class TouchEvent{ constructor(type: string, bubbles?: boolean, cancelable?: boolean, touchPointID?: number, stageX?: number, stageY?: number, ctrlKey?: boolean, altKey?: boolean, shiftKey?: boolean, touchDown?: boolean); }",
+    "solution-url":"http://baidu.com/null"
+  },
+  {
+    "desc": "class TouchEvent{ static TOUCH_OUT: string; }",
+    "solution-url":"http://baidu.com/null"
+  },
+  {
+    "desc": "class TouchEvent{ static TOUCH_OVER: string; }",
+    "solution-url":"http://baidu.com/null"
+  },
+  {
+    "desc": "class TouchEvent{ _stageX: number; }",
+    "solution-url":"http://baidu.com/null"
+  },
+  {
+    "desc": "class TouchEvent{ _stageY: number; }",
+    "solution-url":"http://baidu.com/null"
+  },
+  {
+    "desc": "class TouchEvent{ ctrlKey: boolean; }",
+    "solution-url":"http://baidu.com/null"
+  },
+  {
+    "desc": "class TouchEvent{ shiftKey: boolean; }",
+    "solution-url":"http://baidu.com/null"
+  },
+  {
+    "desc": "class TouchEvent{ altKey: boolean; }",
+    "category-name": "TouchEvent",
+    "category-type": "class",
+    "name": "altKey"
+  },
+  {
+    "desc": "class TouchEvent{ static dispatchTouchEvent(target: IEventDispatcher, type: string, touchPointID?: number, stageX?: number, stageY?: number, ctrlKey?: boolean, altKey?: boolean, shiftKey?: boolean, touchDown?: boolean): void; }",
+    "category-name": "TouchEvent",
+    "category-type": "class",
+    "name": "dispatchTouchEvent"
+  },
+  {
+    "desc": "class TimerEvent{ static dispatchTimerEvent(target: IEventDispatcher, type: string): void; }",
+    "category-name": "TimerEvent",
+    "category-type": "class",
+    "name": "dispatchTimerEvent"
+  },
+  {
+    "desc": "class TextEvent{ static dispatchTextEvent(target: IEventDispatcher, type: string, text: string): void; }",
+    "category-name": "TextEvent",
+    "category-type": "class",
+    "name": "dispatchTextEvent"
+  }
+]

@@ -1670,10 +1670,16 @@
         "name": "_createBitmapDataForNative"
     },
     {
+        "desc": "class RenderTexture{ * }",
+        "solution-url": "http://www.baidu.com/1.html"
+    },
+    {
         "desc": "class RenderTexture{ renderContext: any; }",
         "category-name": "RenderTexture",
         "category-type": "class",
-        "name": "renderContext"
+        "name": "renderContext",
+        "solution-url": "http://www.baidu.com/1.html"
+
     },
     {
         "desc": "class RenderTexture{ init(): void; }",

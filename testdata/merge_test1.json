@@ -1,0 +1,78 @@
+[
+    {
+        "desc": "class Event{ constructor(type: string, bubbles?: boolean, cancelable?: boolean); }",
+        "solution-url":"http://baidu.com/null"
+    },
+    {
+        "desc": "class Event{ static FINISH_RENDER: string; }",
+        "solution-url":"http://baidu.com/null"
+    },
+    {
+        "desc": "class Event{ static FINISH_UPDATE_TRANSFORM: string; }",
+        "solution-url":"http://baidu.com/null"
+
+    },
+    {
+        "desc": "class Event{ _type: string; }",
+        "solution-url":"http://baidu.com/null"
+
+    },
+    {
+        "desc": "class Event{ _bubbles: boolean; }",
+        "solution-url":"http://baidu.com/null"
+
+    },
+    {
+        "desc": "class Event{ _eventPhase: number; }",
+        "solution-url":"http://baidu.com/null"
+
+    },
+    {
+        "desc": "class Event{ _currentTarget: any; }",
+        "solution-url":"http://baidu.com/null"
+
+    },
+    {
+        "desc": "class Event{ _target: any; }",
+        "solution-url":"http://baidu.com/null"
+
+    },
+    {
+        "desc": "class Event{ _isDefaultPrevented: boolean; }",
+        "solution-url":"http://baidu.com/null"
+
+    },
+    {
+        "desc": "class Event{ _isPropagationStopped: boolean; }",
+        "solution-url":"http://baidu.com/null"
+
+    },
+    {
+        "desc": "class Event{ _isPropagationImmediateStopped: boolean; }",
+        "solution-url":"http://baidu.com/null"
+
+    },
+    {
+        "desc": "class Event{ _reset(): void; }",
+        "solution-url":"http://baidu.com/null"
+
+    },
+    {
+        "desc": "class Event{ __recycle(): void; }",
+        "category-name": "Event",
+        "category-type": "class",
+        "name": "__recycle"
+    },
+    {
+        "desc": "class Event{ static _dispatchByTarget(EventClass: any, target: IEventDispatcher, type: string, props?: Object, bubbles?: boolean, cancelable?: boolean): boolean; }",
+        "category-name": "Event",
+        "category-type": "class",
+        "name": "_dispatchByTarget"
+    },
+    {
+        "desc": "class Event{ static dispatchEvent(target: IEventDispatcher, type: string, bubbles?: boolean, data?: any): void; }",
+        "category-name": "Event",
+        "category-type": "class",
+        "name": "dispatchEvent"
+    }
+]

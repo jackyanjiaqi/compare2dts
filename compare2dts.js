@@ -481,9 +481,17 @@
 		}
 		var comparingFilePath = arguments[i];
 		var comparedFilePath = arguments[i+1];
-		var solvedJsonFile = arguments[i+2];//过滤已经处理的json
-		if(solvedJsonFile && !solvedJson){
-			solvedJson = formatJsonConfig(JSON.parse(file.read(solvedJsonFile)));
+		//配置JSON配置文件
+		var solvedJsonFile = arguments[i+2];//过滤已经处理的json的配置文件[对象或文件名]
+		if(solvedJsonFile){
+			if(typeof solvedJsonFile == 'string'){
+				if(!solvedJsonFile){
+					solvedJson = formatJsonConfig(JSON.parse(file.read(solvedJsonFile)));
+				}
+			}else
+			if(typeof solvedJsonFile == 'object'){
+				solvedJson = solvedJsonFile;
+			}
 		}
 		startParse(comparedFilePath,comparingFilePath);
 	}
@@ -675,26 +683,27 @@
 		return solvedJson;
 	}
 
-	function optmizeJsonConfig(jsonPath){
-		if(!solvedJson){
-
-		}
-	}
-
 	function compareAndGenJSON(comparingFilePath,comparedFilePath,solvedJsonFile,genJsonFile){
 		isConsoleEnabled = false;
-		var need
 		var writeFilePath;
+		//支持多文件输入
+		if(solvedJsonFile && typeof solvedJsonFile == 'object'){
+			if(!genJsonFile)return;
+			writeFilePath = genJsonFile;
+			outputLst = solvedJsonFile;
+		}else
+		//额外生成的jsonFile路径
 		if(genJsonFile){
 			writeFilePath = genJsonFile;
 		}else
-		if(solvedJsonFile){
+		//没有输出的文件路径则复用输入的路径
+		if(solvedJsonFile) {
 			//写回
 			writeFilePath = solvedJsonFile;
 			//输出对象指向solvedJson
 			solvedJson = formatJsonConfig(JSON.parse(file.read(solvedJsonFile)));
 			outputLst = solvedJson;
-		}
+		}else return;
 
 		compareEndCallBack = function(){
 			formatJsonConfig(outputLst);
@@ -704,13 +713,32 @@
 
 	}
 
-	function loadAndFormatJSON(){
+	function loadAndFormatJSON(jsonFilePath){
+		return formatJsonConfig(JSON.parse(file.read(jsonFilePath)));
+	}
 
+	function loadMultiAndFormatJSON(){
+		var solvedJson;
+		if(arguments.length>1){
+			for(var i=0;i<arguments.length;i++){
+				if(!solvedJson){
+					solvedJson = JSON.parse(file.read(arguments[i]));
+				}else{
+					(function(mergeItem){
+						mergeItem.forEach(function(item){
+							solvedJson.push(item);
+						});
+					})(JSON.parse(file.read(arguments[i])));
+				}
+			}
+		}
+		return formatJsonConfig(solvedJson);
 	}
 
 	module.exports.compare = compare;
 	module.exports.compare_gen = compareAndGenJSON;
 	module.exports.load_format = loadAndFormatJSON;
+	module.exports.load_multi_format = loadMultiAndFormatJSON;
 })();
 
 if(process.argv.length>3){
