@@ -16,17 +16,17 @@ var jsonConfigFilePath = __dirname + '/testdata/solved.json';
 
 //测试compare命令
 //DTSCompareTool.compare('-simple',comparingFilePath,comparedFilePath,jsonConfigFilePath);
-//DTSCompareTool.compare(comparingFilePath,comparedFilePath,jsonConfigFilePath);
+DTSCompareTool.compare(comparingFilePath,comparedFilePath,jsonConfigFilePath);
 
 //测试多json版本的compare命令
-DTSCompareTool.compare(
-    comparingFilePath,
-    comparedFilePath,
-    DTSCompareTool.load_multi_format(
-        jsonConfigFilePath,
-        __dirname + '/testdata/merge_test1.json',
-        __dirname + '/testdata/merge_test2.json'
-    ));
+//DTSCompareTool.compare(
+//    comparingFilePath,
+//    comparedFilePath,
+//    DTSCompareTool.load_multi_format(
+//        jsonConfigFilePath,
+//        __dirname + '/testdata/merge_test1.json',
+//        __dirname + '/testdata/merge_test2.json'
+//    ));
 
 //测试compare_gen命令
 //DTSCompareTool.compare_gen(comparingFilePath,comparedFilePath,jsonConfigFilePath,__dirname + '/testdata/gen.json');

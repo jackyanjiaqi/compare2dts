@@ -155,7 +155,8 @@
 				parseMap[mark] = {lineFrom:currentLineNum,lines:[]};
 			}else
 			if(lineStr.indexOf('{') !== -1){
-				braceStack.push(IGNORE_PARSE);
+				state = IGNORE_PARSE;
+				braceStack.push(state);
 			}
 			else
 			//回括及处理
@@ -211,7 +212,7 @@
 			//解析class和interface并将行作为索引
 			if ((lineStr.indexOf('class ') !== -1 ||
 				lineStr.indexOf('interface ') !== -1 ||
-				lineStr.indexOf('enum ')) && lineStr.indexOf('{') !== -1) {
+				lineStr.indexOf('enum ') !== -1 ) && lineStr.indexOf('{') !== -1) {
 				state = CLASS_INTERFACE_ENUM_PARSE;
 				braceStack.push(state);
 				//空格切分单词
@@ -231,7 +232,8 @@
 				//预定义数据格式（当前开始行号）
 				//parseMap[mark] = {lineFrom:currentLineNum,lines:[]};
 			} else if (lineStr.indexOf('{') !== -1) {
-				braceStack.push(IGNORE_PARSE);
+				state = IGNORE_PARSE;
+				braceStack.push(state);
 			}
 			else
 			//回括及处理
@@ -291,6 +293,9 @@
 						//输出不匹配原因
 						//console.log('///ClassOrInterfaceOrEnum_Not_Found');
 					}
+				}else{
+					//忽略的解析行
+					//console.log('ignore:'+lineStr);
 				}
 			}
 		}
@@ -523,6 +528,9 @@
 	 * @param item
 	 */
 	function formatItem(item){
+		if(!item.desc){
+			return;
+		}
 		var body;
 		var name;
 		var category_name;
@@ -568,11 +576,11 @@
 		}
 		if(category_type){
 			if('category-type' in item && item['category-type'] != category_type){
-				//加入冲突列表
-				if(!item.conflict){
-					item.conflict = [];
-				}
-				item.conflict.push(item);
+				//解析冲突 以手写输入值为准
+				//if(!item.conflict){
+				//	item.conflict = [];
+				//}
+				//item.conflict.push(item);
 			}else{
 				item['category-type'] = category_type;
 			}
@@ -627,11 +635,11 @@
 		//step 6 冲突检测
 		if(name){
 			if('name' in item && item['name'] != name){
-				//加入冲突列表
-				if(!item.conflict){
-					item.conflict = [];
-				}
-				item.conflict.push(item);
+				//解析冲突 以手写值为准
+				//if(!item.conflict){
+				//	item.conflict = [];
+				//}
+				//item.conflict.push(item);
 			}else{
 				item['name'] = name;
 			}
@@ -640,6 +648,9 @@
 		}
 
 		//step 7 添加solved标记
+		if(item['solution-url'] == ''){
+			delete item['solution-url'];
+		}
 		if('solution-url' in item && !('solved' in item)){
 			item.solved = true;
 		}
@@ -714,22 +725,20 @@
 	}
 
 	function loadAndFormatJSON(jsonFilePath){
-		return formatJsonConfig(JSON.parse(file.read(jsonFilePath)));
+		return loadMultiAndFormatJSON.apply(this,file.getDirectoryAllListing(jsonFilePath));
 	}
 
 	function loadMultiAndFormatJSON(){
-		var solvedJson;
+		var solvedJson = [];
 		if(arguments.length>1){
 			for(var i=0;i<arguments.length;i++){
-				if(!solvedJson){
-					solvedJson = JSON.parse(file.read(arguments[i]));
-				}else{
-					(function(mergeItem){
-						mergeItem.forEach(function(item){
-							solvedJson.push(item);
-						});
-					})(JSON.parse(file.read(arguments[i])));
-				}
+				var filePath = arguments[i];
+				var mergeItem = JSON.parse(file.read(filePath));
+				mergeItem.forEach(function(item){
+						//以文件名区分来源
+						item.source = filePath.substr(filePath.lastIndexOf('/')+1);
+						solvedJson.push(item);
+					});
 			}
 		}
 		return formatJsonConfig(solvedJson);
